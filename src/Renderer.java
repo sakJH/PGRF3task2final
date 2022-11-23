@@ -24,6 +24,8 @@ public class Renderer extends AbstractRenderer {
 
     int width_ = 800, height_ = 600;
 
+    boolean hdr = false;
+
     @Override
     public void display() {
         renderMain();
@@ -43,6 +45,8 @@ public class Renderer extends AbstractRenderer {
         //projection = new Mat4PerspRH(Math.PI / 3, Main.getHeight() / (float) Main.getWidth(), 0.1f, 50.f);
 
         projection = new Mat4PerspRH(Math.PI / 4, 1, 0.1, 100.0);
+
+        buffers = Quad.getQuad();
 
         try { texture = new OGLTexture2D("img/city.jpg"); } catch (IOException e) { e.printStackTrace(); }
 
@@ -79,7 +83,7 @@ public class Renderer extends AbstractRenderer {
         glUniform1f(loc_Width, (float) width_);
         glUniform1f(loc_Height, (float) height_);
 
-        buffers.draw(GL_TRIANGLES, shaderHdr);
+        buffers.draw(GL_TRIANGLES, shaderHdr); //TODO naplnit buffer
 
 
         if (loadImg) {
@@ -122,9 +126,9 @@ public class Renderer extends AbstractRenderer {
                 glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
                 switch (key) {
-                    case GLFW_KEY_1 -> { }
+                    case GLFW_KEY_1 -> {hdr = !hdr; } // Zobrazení HDR
 
-                    case GLFW_KEY_Q -> loadImg = !loadImg;
+                    case GLFW_KEY_Q -> { loadImg = !loadImg; } // Načtení jiného obrázku
 
                 }
             }
