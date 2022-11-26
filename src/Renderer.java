@@ -5,7 +5,9 @@ import org.lwjgl.glfw.GLFWWindowSizeCallback;
 import transforms.Mat4;
 import transforms.Mat4PerspRH;
 
+import java.awt.*;
 import java.io.IOException;
+import java.text.DecimalFormat;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL20.glGetUniformLocation;
@@ -14,24 +16,22 @@ import static org.lwjgl.opengl.GL33.*;
 
 public class Renderer extends AbstractRenderer {
     private int shaderHdr;
-    private int loc_HdrMode, loc_PosX, loc_PosY, loc_Width, loc_Height;
+    private int loc_HdrMode, loc_PosX, loc_PosY, loc_Width, loc_Height, loc_Exposure, loc_Gamma, loc_Brightness, loc_InvertColor, loc_GreyFilter, loc_Solarise;
     private boolean loadImg;
     OGLTexture2D texture, tempTexture, secondTexture;
     private double posX, posY;
-    int hdrMode = 0;
+    int hdrMode = 0, brightness = 0, invertColor = 0, greyFilter = 0, solarise = 0;
     Mat4 projection;
     private OGLBuffers buffers;
 
     int width_ = 800, height_ = 600;
-
-    boolean hdr = false;
+    private float exposure = 1.f, gamma = 0.6f;
 
     @Override
     public void display() {
         renderMain();
+        renderText();
     }
-
-
 
     @Override
     public void init() {
@@ -48,7 +48,7 @@ public class Renderer extends AbstractRenderer {
 
         buffers = Quad.getQuad();
 
-        try { texture = new OGLTexture2D("img/city.jpg"); } catch (IOException e) { e.printStackTrace(); }
+        try { texture = new OGLTexture2D("img/clamp.png"); } catch (IOException e) { e.printStackTrace(); }
 
         try { secondTexture = new OGLTexture2D("img/city.jpg"); } catch (IOException e) { e.printStackTrace(); }
 
@@ -60,7 +60,12 @@ public class Renderer extends AbstractRenderer {
         loc_PosY = glGetUniformLocation(shaderHdr, "u_PosY");
         loc_Width = glGetUniformLocation(shaderHdr, "u_Width");
         loc_Height = glGetUniformLocation(shaderHdr, "u_Height");
-
+        loc_Exposure = glGetUniformLocation(shaderHdr, "u_Exposure");
+        loc_Gamma = glGetUniformLocation(shaderHdr, "u_Gamma");
+        loc_Brightness = glGetUniformLocation(shaderHdr, "u_Brightness");
+        loc_InvertColor = glGetUniformLocation(shaderHdr, "u_InvertColor");
+        loc_GreyFilter = glGetUniformLocation(shaderHdr, "u_GreyFilter");
+        loc_Solarise = glGetUniformLocation(shaderHdr, "u_Solarise");
     }
 
     private void renderMain(){
@@ -77,11 +82,18 @@ public class Renderer extends AbstractRenderer {
         texture.bind(shaderHdr, "texture", 0);
 
 
-        glUniform1f(loc_HdrMode,hdrMode);
+        glUniform1i(loc_HdrMode,hdrMode);
         glUniform1f(loc_PosX, (float) posX);
         glUniform1f(loc_PosY, (float) posY);
         glUniform1f(loc_Width, (float) width_);
         glUniform1f(loc_Height, (float) height_);
+        glUniform1f(loc_Exposure, exposure);
+        glUniform1f(loc_Gamma, gamma);
+        glUniform1i(loc_Brightness, brightness);
+        glUniform1i(loc_InvertColor, invertColor);
+        glUniform1i(loc_GreyFilter, greyFilter);
+        glUniform1i(loc_Solarise, solarise);
+
 
         buffers.draw(GL_TRIANGLES, shaderHdr); //TODO naplnit buffer
 
@@ -118,7 +130,6 @@ public class Renderer extends AbstractRenderer {
     };
 
 
-
     private final GLFWKeyCallback keyCallback = new GLFWKeyCallback() {
         @Override
         public void invoke(long window, int key, int scancode, int action, int mods) {
@@ -126,9 +137,21 @@ public class Renderer extends AbstractRenderer {
                 glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
                 switch (key) {
-                    case GLFW_KEY_1 -> {hdr = !hdr; } // Zobrazení HDR
+                    case GLFW_KEY_1 -> { hdrMode++; if (hdrMode > 6) hdrMode = 0; System.out.println("HDR Mode " + hdrMode);} // Zobrazení HDR
 
                     case GLFW_KEY_Q -> { loadImg = !loadImg; } // Načtení jiného obrázku
+
+                    case GLFW_KEY_2 -> { exposure += 0.5f; if (exposure > 3.f) exposure = 1.f; System.out.println("Exposure " + exposure);} //Změna expozice
+
+                    case GLFW_KEY_3 -> { gamma += 0.3f; if (gamma > 3.f) gamma = 0.3f; System.out.println("Gamma " + gamma);} //Změna Gamma
+
+                    case GLFW_KEY_4 -> { brightness++; if (brightness > 3) brightness = 0; System.out.println("Brightness Mode " + brightness);} // Zobrazení Jasu
+
+                    case GLFW_KEY_W -> { invertColor++; if (invertColor > 1) invertColor = 0;}
+
+                    case GLFW_KEY_E -> { greyFilter++; if (greyFilter > 1) greyFilter = 0;}
+
+                    case GLFW_KEY_R -> { solarise++; if (solarise > 1) solarise = 0;}
 
                 }
             }
@@ -148,6 +171,68 @@ public class Renderer extends AbstractRenderer {
     @Override
     public GLFWCursorPosCallback getCursorCallback() {
         return cpCallback;
+    }
+
+    public void renderText(){
+        String modeHRD = switch (hdrMode) {
+            case 0 -> "No HDR";
+            case 1 -> "Reinhard";
+            case 2 -> "Reinhard Extended";
+            case 3 -> "Reinhard Extended by Luminance";
+            case 4 -> "Reinhard-Jodie";
+            case 5 -> "Uncharted 2";
+            default -> "default";
+        };
+
+        String modeBrightness = switch (brightness) {
+            case 0 -> "Origin";
+            case 1 -> "+ 0.1";
+            case 2 -> "+ 0.3";
+            case 3 -> "+ 0.5";
+            default -> "default";
+        };
+
+        String modeInvertColor = switch (invertColor) {
+            case 0 -> "No";
+            case 1 -> "Yes";
+            default -> "default";
+        };
+
+        String modeGreyFilter = switch (greyFilter) {
+            case 0 -> "No";
+            case 1 -> "Yes";
+            default -> "default";
+        };
+
+        String modeSolarise = switch (solarise) {
+            case 0 -> "No";
+            case 1 -> "Yes";
+            default -> "default";
+        };
+
+        DecimalFormat ft = new DecimalFormat("#.##");
+
+        String textHdr = "[1] HDR mode: " + modeHRD;
+        String textExposure = "[2] Exposure value: " + exposure;
+        String textGama = "[3] Gamma correction value: " + ft.format(gamma);
+        String textBrightness = "[4] Brightness value: " + modeBrightness;
+        String textNewImage = "[Q] New Image";
+        String textInvertColor = "[W] InvertColor: " + modeInvertColor;
+        String textGreyFilter = "[E] Grey Filter: " + modeGreyFilter;
+        String textSolarise = "[R] Solarise: " + modeSolarise;
+
+        textRenderer.setBackgroundColor(new Color(255,255,255));
+        textRenderer.setColor(new Color(0, 0, 0));
+
+        textRenderer.addStr2D(3, 20, textHdr);
+        textRenderer.addStr2D(3, 35, textExposure);
+        textRenderer.addStr2D(3, 50, textGama);
+        textRenderer.addStr2D(3, 65, textBrightness);
+        textRenderer.addStr2D(3, 80, textNewImage);
+        textRenderer.addStr2D(3, 95, textInvertColor);
+        textRenderer.addStr2D(3, 110, textGreyFilter);
+        textRenderer.addStr2D(3, 125, textSolarise);
+
     }
 
 }
