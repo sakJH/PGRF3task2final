@@ -16,11 +16,11 @@ import static org.lwjgl.opengl.GL33.*;
 
 public class Renderer extends AbstractRenderer {
     private int shaderHdr;
-    private int loc_HdrMode, loc_PosX, loc_PosY, loc_Width, loc_Height, loc_Exposure, loc_Gamma, loc_Brightness, loc_InvertColor, loc_GreyFilter, loc_Solarise;
+    private int loc_HdrMode, loc_PosX, loc_PosY, loc_Width, loc_Height, loc_Exposure, loc_Gamma, loc_Brightness, loc_InvertColor, loc_GreyFilter, loc_Solarise, loc_SolariseGrey;
     private boolean loadImg;
     OGLTexture2D texture, tempTexture, secondTexture;
     private double posX, posY;
-    int hdrMode = 0, brightness = 0, invertColor = 0, greyFilter = 0, solarise = 0;
+    int hdrMode = 0, brightness = 0, invertColor = 0, greyFilter = 0, solarise = 0, solariseGrey = 0;
     Mat4 projection;
     private OGLBuffers buffers;
 
@@ -66,6 +66,7 @@ public class Renderer extends AbstractRenderer {
         loc_InvertColor = glGetUniformLocation(shaderHdr, "u_InvertColor");
         loc_GreyFilter = glGetUniformLocation(shaderHdr, "u_GreyFilter");
         loc_Solarise = glGetUniformLocation(shaderHdr, "u_Solarise");
+        loc_SolariseGrey = glGetUniformLocation(shaderHdr, "u_SolariseGrey");
     }
 
     private void renderMain(){
@@ -93,6 +94,7 @@ public class Renderer extends AbstractRenderer {
         glUniform1i(loc_InvertColor, invertColor);
         glUniform1i(loc_GreyFilter, greyFilter);
         glUniform1i(loc_Solarise, solarise);
+        glUniform1i(loc_SolariseGrey, solariseGrey);
 
 
         buffers.draw(GL_TRIANGLES, shaderHdr); //TODO naplnit buffer
@@ -147,11 +149,13 @@ public class Renderer extends AbstractRenderer {
 
                     case GLFW_KEY_4 -> { brightness++; if (brightness > 3) brightness = 0; System.out.println("Brightness Mode " + brightness);} // Zobrazení Jasu
 
-                    case GLFW_KEY_W -> { invertColor++; if (invertColor > 1) invertColor = 0;}
+                    case GLFW_KEY_W -> { invertColor++; if (invertColor > 1) invertColor = 0;} //Invertování (obrácení barev)
 
-                    case GLFW_KEY_E -> { greyFilter++; if (greyFilter > 1) greyFilter = 0;}
+                    case GLFW_KEY_E -> { greyFilter++; if (greyFilter > 1) greyFilter = 0;} // Černobílý filter
 
-                    case GLFW_KEY_R -> { solarise++; if (solarise > 1) solarise = 0;}
+                    case GLFW_KEY_R -> { solarise++; if (solarise > 1) solarise = 0;} // Solarizace (obrácení tónu od určité hranice (THRESHOLD))
+
+                    case GLFW_KEY_T -> { solariseGrey++; if (solariseGrey > 1) solariseGrey = 0;} // Solarizace černobíleho filtru
 
                 }
             }
@@ -210,6 +214,12 @@ public class Renderer extends AbstractRenderer {
             default -> "default";
         };
 
+        String modeSolariseGrey = switch (solariseGrey) {
+            case 0 -> "No";
+            case 1 -> "Yes";
+            default -> "default";
+        };
+
         DecimalFormat ft = new DecimalFormat("#.##");
 
         String textHdr = "[1] HDR mode: " + modeHRD;
@@ -220,6 +230,7 @@ public class Renderer extends AbstractRenderer {
         String textInvertColor = "[W] InvertColor: " + modeInvertColor;
         String textGreyFilter = "[E] Grey Filter: " + modeGreyFilter;
         String textSolarise = "[R] Solarise: " + modeSolarise;
+        String textSolariseGrey = "[T] Solarise Grey: " + modeSolariseGrey;
 
         textRenderer.setBackgroundColor(new Color(255,255,255));
         textRenderer.setColor(new Color(0, 0, 0));
@@ -232,6 +243,7 @@ public class Renderer extends AbstractRenderer {
         textRenderer.addStr2D(3, 95, textInvertColor);
         textRenderer.addStr2D(3, 110, textGreyFilter);
         textRenderer.addStr2D(3, 125, textSolarise);
+        textRenderer.addStr2D(3, 140, textSolariseGrey);
 
     }
 

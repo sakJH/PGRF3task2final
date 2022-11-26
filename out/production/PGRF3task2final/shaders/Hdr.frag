@@ -14,6 +14,7 @@ uniform int u_Brightness;
 uniform int u_InvertColor;
 uniform int u_GreyFilter;
 uniform int u_Solarise;
+uniform int u_SolariseGrey;
 
 in vec2 texCoords;
 
@@ -168,10 +169,9 @@ void main() {
 
     if(u_InvertColor == 1)
     {
-
-        float newR = 255 - appliedHdr.r;
-        float newG = 255 - appliedHdr.g;
-        float newB = 255 - appliedHdr.b;
+        float newR = 0.5 - appliedHdr.r;
+        float newG = 0.5 - appliedHdr.g;
+        float newB = 0.5 - appliedHdr.b;
 
         outColor = vec4(newR, newG, newB,1.);
     }
@@ -182,31 +182,31 @@ void main() {
         outColor = vec4(i, i, i,1.);
     }
 
-    if(u_Solarise == 1){
-        int threshold = 128;
-        float solariseRed, solariseGreen, solariseBlue;
+    if(u_Solarise == 1){ // Zdroj: https://discourse.processing.org/t/solarization-shader/21731/2
+        vec3 THRESHOLD = vec3(1.,.92,.1);
+        vec2 sketchSize = vec2(u_Width, u_Height);
 
+        vec2 uv = gl_FragCoord.xy / sketchSize.xy;
+        vec3 val = vec3(texture2D(texture, uv));
+        if (val.x < THRESHOLD.x) val.x = 1. - val.x;
+        if (val.y < THRESHOLD.y) val.y = 1. - val.y;
+        if (val.z < THRESHOLD.z) val.z = 1. - val.z;
+        outColor = vec4(val, 1.);
 
-        if(appliedHdr.r < threshold)
-        {
-            solariseRed = 255 - appliedHdr.r;
-        }
-        else {solariseRed = appliedHdr.r;}
+    }
 
-        if(appliedHdr.g < threshold)
-        {
-            solariseGreen = 255 - appliedHdr.g;
-        }
-        else {solariseGreen = appliedHdr.r;}
+    if(u_SolariseGrey == 1){ // Zdroj: https://discourse.processing.org/t/solarization-shader/21731/2
+        vec3 THRESHOLD = vec3(1.,.92,.1);
+        vec2 sketchSize = vec2(u_Width, u_Height);
+        vec3 GRAY = vec3(0.299, 0.597, 0.114);
 
-        if(appliedHdr.b < threshold)
-        {
-            solariseBlue = 255 - appliedHdr.b;
-        }
-        else {solariseBlue = appliedHdr.b;}
-
-
-        outColor = vec4(solariseRed, solariseGreen, solariseBlue,1.);
+        vec2 uv = gl_FragCoord.xy / sketchSize.xy;
+        vec3 val = vec3(texture2D(texture, uv));
+        if (val.x < THRESHOLD.x) val.x = 1. - val.x;
+        if (val.y < THRESHOLD.y) val.y = 1. - val.y;
+        if (val.z < THRESHOLD.z) val.z = 1. - val.z;
+        float gray = dot(val, GRAY);
+        outColor = vec4(vec3(gray), 1.);
     }
 
 
