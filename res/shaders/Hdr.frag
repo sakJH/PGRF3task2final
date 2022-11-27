@@ -45,16 +45,16 @@ vec3 reinhard_extended_luminance(vec3 v, float max_white_l)
     float l_new = numerator / (1.0f + l_old);
     return change_luminance(v, l_new);
 }
-/*
-// Reinhard-Jodie
-vec3 reinhard_jodie(vec3 v)
+
+// Reinhard-Jodie - Operates on luminance rather than RGB as brightness is perceived differently for each channel.
+/*vec3 reinhard_jodie(vec3 v)
 {
     float l = luminance(v);
     vec3 tv = v / (1.0f + v);
     return lerp(v / (1.0f + l), tv, tv);
 }*/  //lepr dělá problémy OpenGL
 
-//Uncharted 2
+//Uncharted 2 - The tonemapper used by Uncharted 2 and currently the default for FSO
 vec3 uncharted2_tonemap_partial(vec3 x)
 {
     float A = 0.15f;
@@ -91,6 +91,41 @@ vec3 brightness(vec3 vec){
     return vec3(newR, newG, newB);
 }
 
+// NEW ----------------------
+// Zdroj: https://www.shadertoy.com/view/lslGzl
+
+vec3 linearToneMapping(vec3 vec)
+{
+    vec = clamp(u_Exposure * vec, 0., 1.);
+    vec = pow(vec, vec3(1. / u_Gamma));
+    return vec;
+}
+
+vec3 whitePreservingLumaBasedReinhardToneMapping(vec3 color)
+{
+    float white = 2.;
+    float luma = dot(color, vec3(0.2126, 0.7152, 0.0722));
+    float toneMappedLuma = luma * (1. + luma / (white * white)) / (1. + luma);
+    color *= toneMappedLuma / luma;
+    color = pow(color, vec3(1. / u_Gamma));
+    return color;
+}
+
+vec3 RomBinDaHouseToneMapping(vec3 color)
+{
+    color = exp( -1.0 / ( 2.72 * color + 0.15 ) );
+    color = pow(color, vec3(1. / u_Gamma));
+    return color;
+}
+
+vec3 filmicToneMapping(vec3 color)
+{
+    color = max(vec3(0.), color - vec3(0.004));
+    color = (color * (6.2 * color + .5)) / (color * (6.2 * color + 1.7) + 0.06);
+    return color;
+}
+
+
 void main() {
     vec3 textureColor = texture2D(texture, texCoords).rgb;
     vec4 appliedHdr;
@@ -121,6 +156,27 @@ void main() {
     if (u_HdrMode == 5) // Uncharted 2
     {
         vec3 resolut = uncharted2_filmic(textureColor);
+        appliedHdr = vec4(resolut, 1.);
+    }
+
+    if (u_HdrMode == 6) //
+    {
+        vec3 resolut = linearToneMapping(textureColor);
+        appliedHdr = vec4(resolut, 1.);
+    }
+    if (u_HdrMode == 7) //
+    {
+        vec3 resolut = whitePreservingLumaBasedReinhardToneMapping(textureColor);
+        appliedHdr = vec4(resolut, 1.);
+    }
+    if (u_HdrMode == 8) //
+    {
+        vec3 resolut = RomBinDaHouseToneMapping(textureColor);
+        appliedHdr = vec4(resolut, 1.);
+    }
+    if (u_HdrMode == 9) //
+    {
+        vec3 resolut = filmicToneMapping(textureColor);
         appliedHdr = vec4(resolut, 1.);
     }
 
@@ -185,12 +241,13 @@ void main() {
         vec2 sketchSize = vec2(u_Width, u_Height);
 
         vec2 uv = gl_FragCoord.xy / sketchSize.xy;
+
         vec3 val = vec3(texture2D(texture, uv));
         if (val.x < THRESHOLD.x) val.x = 1. - val.x;
         if (val.y < THRESHOLD.y) val.y = 1. - val.y;
         if (val.z < THRESHOLD.z) val.z = 1. - val.z;
-        outColor = vec4(val, 1.);
-
+        //outColor = vec4(val, 1.);
+        outColor = vec4(val.x,val.y,val.z, 1.);
     }
 
     if(u_SolariseGrey == 1){ // Zdroj: https://discourse.processing.org/t/solarization-shader/21731/2
@@ -206,6 +263,5 @@ void main() {
         float gray = dot(val, GRAY);
         outColor = vec4(vec3(gray), 1.);
     }
-
 
 }

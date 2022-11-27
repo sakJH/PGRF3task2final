@@ -18,9 +18,9 @@ public class Renderer extends AbstractRenderer {
     private int shaderHdr;
     private int loc_HdrMode, loc_PosX, loc_PosY, loc_Width, loc_Height, loc_Exposure, loc_Gamma, loc_Brightness, loc_InvertColor, loc_GreyFilter, loc_Solarise, loc_SolariseGrey;
     private boolean loadImg;
-    OGLTexture2D texture, tempTexture, secondTexture;
+    OGLTexture2D texture, tempTexture, secondTexture, texture0, texture1, texture2, texture3, texture4, texture5;
     private double posX, posY;
-    int hdrMode = 0, brightness = 0, invertColor = 0, greyFilter = 0, solarise = 0, solariseGrey = 0;
+    int hdrMode = 0, brightness = 0, invertColor = 0, greyFilter = 0, solarise = 0, solariseGrey = 0, imgMode = 0;
     Mat4 projection;
     private OGLBuffers buffers;
 
@@ -48,9 +48,14 @@ public class Renderer extends AbstractRenderer {
 
         buffers = Quad.getQuad();
 
-        try { texture = new OGLTexture2D("img/clamp.png"); } catch (IOException e) { e.printStackTrace(); }
+        try { texture0 = new OGLTexture2D("img/0.png"); } catch (IOException e) { e.printStackTrace(); }
+        try { texture1 = new OGLTexture2D("img/1.jpg"); } catch (IOException e) { e.printStackTrace(); }
+        try { texture2 = new OGLTexture2D("img/2.jpg"); } catch (IOException e) { e.printStackTrace(); }
+        try { texture3 = new OGLTexture2D("img/3.jpg"); } catch (IOException e) { e.printStackTrace(); }
+        try { texture4 = new OGLTexture2D("img/4.jpg"); } catch (IOException e) { e.printStackTrace(); }
+        try { texture5 = new OGLTexture2D("img/5.jpg"); } catch (IOException e) { e.printStackTrace(); }
 
-        try { secondTexture = new OGLTexture2D("img/city.jpg"); } catch (IOException e) { e.printStackTrace(); }
+        texture = texture0;
 
         //Načítání shaderů
         shaderHdr = ShaderUtils.loadProgram("/shaders/Hdr");
@@ -67,6 +72,7 @@ public class Renderer extends AbstractRenderer {
         loc_GreyFilter = glGetUniformLocation(shaderHdr, "u_GreyFilter");
         loc_Solarise = glGetUniformLocation(shaderHdr, "u_Solarise");
         loc_SolariseGrey = glGetUniformLocation(shaderHdr, "u_SolariseGrey");
+
     }
 
     private void renderMain(){
@@ -82,7 +88,6 @@ public class Renderer extends AbstractRenderer {
 
         texture.bind(shaderHdr, "texture", 0);
 
-
         glUniform1i(loc_HdrMode,hdrMode);
         glUniform1f(loc_PosX, (float) posX);
         glUniform1f(loc_PosY, (float) posY);
@@ -96,9 +101,7 @@ public class Renderer extends AbstractRenderer {
         glUniform1i(loc_Solarise, solarise);
         glUniform1i(loc_SolariseGrey, solariseGrey);
 
-
         buffers.draw(GL_TRIANGLES, shaderHdr); //TODO naplnit buffer
-
 
         if (loadImg) {
             tempTexture = FileLoader.loadIMG();
@@ -131,7 +134,6 @@ public class Renderer extends AbstractRenderer {
         }
     };
 
-
     private final GLFWKeyCallback keyCallback = new GLFWKeyCallback() {
         @Override
         public void invoke(long window, int key, int scancode, int action, int mods) {
@@ -139,7 +141,7 @@ public class Renderer extends AbstractRenderer {
                 glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
                 switch (key) {
-                    case GLFW_KEY_1 -> { hdrMode++; if (hdrMode > 6) hdrMode = 0; System.out.println("HDR Mode " + hdrMode);} // Zobrazení HDR
+                    case GLFW_KEY_1 -> { hdrMode++; if (hdrMode > 9) hdrMode = 0; System.out.println("HDR Mode " + hdrMode);} // Zobrazení HDR
 
                     case GLFW_KEY_Q -> { loadImg = !loadImg; } // Načtení jiného obrázku
 
@@ -157,6 +159,24 @@ public class Renderer extends AbstractRenderer {
 
                     case GLFW_KEY_T -> { solariseGrey++; if (solariseGrey > 1) solariseGrey = 0;} // Solarizace černobíleho filtru
 
+                    case GLFW_KEY_A -> {
+                        imgMode++;
+
+                        if (imgMode > 5) imgMode = 0;
+                        System.out.println(imgMode);
+
+                        /*
+                        texture = switch (imgMode) {
+                            case 0: texture = texture0;
+                            case 1: texture = texture1;
+                            case 2: texture = texture2;
+                            case 3: texture = texture3;
+                            case 4: texture = texture4;
+                            case 5: texture = texture5;
+                            default: texture = texture0;
+                        };
+*/
+                    }
                 }
             }
         }
@@ -185,6 +205,10 @@ public class Renderer extends AbstractRenderer {
             case 3 -> "Reinhard Extended by Luminance";
             case 4 -> "Reinhard-Jodie";
             case 5 -> "Uncharted 2";
+            case 6 -> "Linear Tone-Mapping";
+            case 7 -> "White Preserving Luma Based Reinhard Tone-Mapping";
+            case 8 -> "RomBinDa House ToneMapping";
+            case 9 -> "Filmic Tone-Mapping";
             default -> "default";
         };
 
@@ -231,6 +255,7 @@ public class Renderer extends AbstractRenderer {
         String textGreyFilter = "[E] Grey Filter: " + modeGreyFilter;
         String textSolarise = "[R] Solarise: " + modeSolarise;
         String textSolariseGrey = "[T] Solarise Grey: " + modeSolariseGrey;
+        String textSwitchImage = "[A] Switch Image";
 
         textRenderer.setBackgroundColor(new Color(255,255,255));
         textRenderer.setColor(new Color(0, 0, 0));
@@ -244,6 +269,7 @@ public class Renderer extends AbstractRenderer {
         textRenderer.addStr2D(3, 110, textGreyFilter);
         textRenderer.addStr2D(3, 125, textSolarise);
         textRenderer.addStr2D(3, 140, textSolariseGrey);
+        textRenderer.addStr2D(3, 155, textSwitchImage);
 
     }
 
