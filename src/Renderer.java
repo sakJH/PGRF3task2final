@@ -165,17 +165,17 @@ public class Renderer extends AbstractRenderer {
                         if (imgMode > 5) imgMode = 0;
                         System.out.println(imgMode);
 
-                        /*
+
                         texture = switch (imgMode) {
-                            case 0: texture = texture0;
-                            case 1: texture = texture1;
-                            case 2: texture = texture2;
-                            case 3: texture = texture3;
-                            case 4: texture = texture4;
-                            case 5: texture = texture5;
-                            default: texture = texture0;
+                            case 0 -> texture = texture0;
+                            case 1 -> texture = texture1;
+                            case 2 -> texture = texture2;
+                            case 3 -> texture = texture3;
+                            case 4 -> texture = texture4;
+                            case 5 -> texture = texture5;
+                            default -> texture = texture0;
                         };
-*/
+
                     }
                 }
             }
