@@ -18,7 +18,7 @@ public class Renderer extends AbstractRenderer {
     private int shaderHdr;
     private int loc_HdrMode, loc_PosX, loc_PosY, loc_Width, loc_Height, loc_Exposure, loc_Gamma, loc_Brightness, loc_InvertColor, loc_GreyFilter, loc_Solarise, loc_SolariseGrey;
     private boolean loadImg;
-    OGLTexture2D texture, tempTexture, secondTexture, texture0, texture1, texture2, texture3, texture4, texture5;
+    OGLTexture2D texture, tempTexture, texture0, texture1, texture2, texture3, texture4, texture5;
     private double posX, posY;
     int hdrMode = 0, brightness = 0, invertColor = 0, greyFilter = 0, solarise = 0, solariseGrey = 0, imgMode = 0;
     Mat4 projection;
@@ -42,18 +42,16 @@ public class Renderer extends AbstractRenderer {
 
         textRenderer = new OGLTextRenderer(width_, height_);
 
-        //projection = new Mat4PerspRH(Math.PI / 3, Main.getHeight() / (float) Main.getWidth(), 0.1f, 50.f);
-
         projection = new Mat4PerspRH(Math.PI / 4, 1, 0.1, 100.0);
 
         buffers = Quad.getQuad();
 
-        try { texture0 = new OGLTexture2D("img/0.png"); } catch (IOException e) { e.printStackTrace(); }
-        try { texture1 = new OGLTexture2D("img/1.jpg"); } catch (IOException e) { e.printStackTrace(); }
-        try { texture2 = new OGLTexture2D("img/2.jpg"); } catch (IOException e) { e.printStackTrace(); }
-        try { texture3 = new OGLTexture2D("img/3.jpg"); } catch (IOException e) { e.printStackTrace(); }
-        try { texture4 = new OGLTexture2D("img/4.jpg"); } catch (IOException e) { e.printStackTrace(); }
-        try { texture5 = new OGLTexture2D("img/5.jpg"); } catch (IOException e) { e.printStackTrace(); }
+        try { texture0 = new OGLTexture2D("img/clamp.png"); } catch (IOException e) { e.printStackTrace(); }
+        try { texture1 = new OGLTexture2D("img/city.jpg"); } catch (IOException e) { e.printStackTrace(); }
+        try { texture2 = new OGLTexture2D("img/clouds.jpg"); } catch (IOException e) { e.printStackTrace(); }
+        try { texture3 = new OGLTexture2D("img/fall.jpg"); } catch (IOException e) { e.printStackTrace(); }
+        try { texture4 = new OGLTexture2D("img/man.jpg"); } catch (IOException e) { e.printStackTrace(); }
+        try { texture5 = new OGLTexture2D("img/car.jpg"); } catch (IOException e) { e.printStackTrace(); }
 
         texture = texture0;
 
@@ -141,15 +139,15 @@ public class Renderer extends AbstractRenderer {
                 glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
                 switch (key) {
-                    case GLFW_KEY_1 -> { hdrMode++; if (hdrMode > 9) hdrMode = 0; System.out.println("HDR Mode " + hdrMode);} // Zobrazení HDR
+                    case GLFW_KEY_1 -> { hdrMode++; if (hdrMode > 9) hdrMode = 0;} // Zobrazení HDR
 
                     case GLFW_KEY_Q -> { loadImg = !loadImg; } // Načtení jiného obrázku
 
-                    case GLFW_KEY_2 -> { exposure += 0.5f; if (exposure > 3.f) exposure = 1.f; System.out.println("Exposure " + exposure);} //Změna expozice
+                    case GLFW_KEY_2 -> { exposure += 0.5f; if (exposure > 3.f) exposure = 1.f; } //Změna expozice
 
-                    case GLFW_KEY_3 -> { gamma += 0.3f; if (gamma > 3.f) gamma = 0.3f; System.out.println("Gamma " + gamma);} //Změna Gamma
+                    case GLFW_KEY_3 -> { gamma += 0.3f; if (gamma > 3.f) gamma = 0.3f; } //Změna Gamma
 
-                    case GLFW_KEY_4 -> { brightness++; if (brightness > 3) brightness = 0; System.out.println("Brightness Mode " + brightness);} // Zobrazení Jasu
+                    case GLFW_KEY_4 -> { brightness++; if (brightness > 3) brightness = 0; } // Zobrazení Jasu
 
                     case GLFW_KEY_W -> { invertColor++; if (invertColor > 1) invertColor = 0;} //Invertování (obrácení barev)
 
@@ -159,12 +157,7 @@ public class Renderer extends AbstractRenderer {
 
                     case GLFW_KEY_T -> { solariseGrey++; if (solariseGrey > 1) solariseGrey = 0;} // Solarizace černobíleho filtru
 
-                    case GLFW_KEY_A -> {
-                        imgMode++;
-
-                        if (imgMode > 5) imgMode = 0;
-                        System.out.println(imgMode);
-
+                    case GLFW_KEY_A -> {imgMode++; if (imgMode > 5) imgMode = 0;
 
                         texture = switch (imgMode) {
                             case 0 -> texture = texture0;
@@ -175,7 +168,6 @@ public class Renderer extends AbstractRenderer {
                             case 5 -> texture = texture5;
                             default -> texture = texture0;
                         };
-
                     }
                 }
             }
@@ -270,19 +262,6 @@ public class Renderer extends AbstractRenderer {
         textRenderer.addStr2D(3, 125, textSolarise);
         textRenderer.addStr2D(3, 140, textSolariseGrey);
         textRenderer.addStr2D(3, 155, textSwitchImage);
-
-    }
-    
-    private void textureMode(int mode){
-
-        if (mode == 1) { texture = texture1;}
-        if (mode == 2) { texture = texture2;}
-        if (mode == 3) { texture = texture3;}
-        if (mode == 4) { texture = texture4;}
-        if (mode == 5) { texture = texture5;}
-        if (mode == 0) { texture = texture0;}
-
-
 
     }
 
