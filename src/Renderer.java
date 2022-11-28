@@ -272,6 +272,19 @@ public class Renderer extends AbstractRenderer {
         textRenderer.addStr2D(3, 155, textSwitchImage);
 
     }
+    
+    private void textureMode(int mode){
+
+        if (mode == 1) { texture = texture1;}
+        if (mode == 2) { texture = texture2;}
+        if (mode == 3) { texture = texture3;}
+        if (mode == 4) { texture = texture4;}
+        if (mode == 5) { texture = texture5;}
+        if (mode == 0) { texture = texture0;}
+
+
+
+    }
 
 }
 
