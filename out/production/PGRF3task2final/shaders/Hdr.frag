@@ -15,6 +15,7 @@ uniform int u_InvertColor;
 uniform int u_GreyFilter;
 uniform int u_Solarise;
 uniform int u_SolariseGrey;
+uniform int u_GammaEnable;
 
 in vec2 texCoords;
 
@@ -47,12 +48,12 @@ vec3 reinhard_extended_luminance(vec3 v, float max_white_l)
 }
 
 // Reinhard-Jodie - Operates on luminance rather than RGB as brightness is perceived differently for each channel.
-/*vec3 reinhard_jodie(vec3 v)
+vec3 reinhard_jodie(vec3 v)
 {
     float l = luminance(v);
     vec3 tv = v / (1.0f + v);
-    return lerp(v / (1.0f + l), tv, tv);
-}*/  //lepr dělá problémy OpenGL
+    return mix(v / (1.0f + l), tv, tv);
+}
 
 //Uncharted 2 - The tonemapper used by Uncharted 2 and currently the default for FSO
 vec3 uncharted2_tonemap_partial(vec3 x)
@@ -150,8 +151,8 @@ void main() {
     }
     if (u_HdrMode == 4) // Reinhard-Jodie
     {
-        /*vec3 resolut = reinhard_jodie(textureColor);
-        appliedHdr = vec4(resolut, 1.);*/
+        vec3 resolut = reinhard_jodie(textureColor);
+        appliedHdr = vec4(resolut, 1.);
     }
     if (u_HdrMode == 5) // Uncharted 2
     {
@@ -181,12 +182,16 @@ void main() {
     }
 
     //Filtry
-    float gammaCorrection = 1 / u_Gamma;
 
-    float appliedHdrR = pow(255 * (appliedHdr.r / 255), gammaCorrection);
-    float appliedHdrG = pow(255 * (appliedHdr.g / 255), gammaCorrection);
-    float appliedHdrB = pow(255 * (appliedHdr.b / 255), gammaCorrection);
 
+    if(u_GammaEnable == 1)
+    {
+        float gammaCorrection = 1 / u_Gamma;
+
+        float appliedHdrR = pow(255 * (appliedHdr.r / 255), gammaCorrection);
+        float appliedHdrG = pow(255 * (appliedHdr.g / 255), gammaCorrection);
+        float appliedHdrB = pow(255 * (appliedHdr.b / 255), gammaCorrection);
+    }
 
     if(u_Brightness == 0)
     {
@@ -242,12 +247,11 @@ void main() {
 
         vec2 uv = gl_FragCoord.xy / sketchSize.xy;
 
-        vec3 val = vec3(texture2D(texture, uv));
-        if (val.x < THRESHOLD.x) val.x = 1. - val.x;
-        if (val.y < THRESHOLD.y) val.y = 1. - val.y;
-        if (val.z < THRESHOLD.z) val.z = 1. - val.z;
-        //outColor = vec4(val, 1.);
-        outColor = vec4(val.x,val.y,val.z, 1.);
+        //vec3 val = vec3(texture2D(texture, uv));
+        if (textureColor.x < THRESHOLD.x) textureColor.x = 1. - textureColor.x;
+        if (textureColor.y < THRESHOLD.y) textureColor.y = 1. - textureColor.y;
+        if (textureColor.z < THRESHOLD.z) textureColor.z = 1. - textureColor.z;
+        outColor = vec4(textureColor, 1.);
     }
 
     if(u_SolariseGrey == 1){ // Zdroj: https://discourse.processing.org/t/solarization-shader/21731/2
@@ -255,12 +259,12 @@ void main() {
         vec2 sketchSize = vec2(u_Width, u_Height);
         vec3 GRAY = vec3(0.299, 0.597, 0.114);
 
-        vec2 uv = gl_FragCoord.xy / sketchSize.xy;
-        vec3 val = vec3(texture2D(texture, uv));
-        if (val.x < THRESHOLD.x) val.x = 1. - val.x;
-        if (val.y < THRESHOLD.y) val.y = 1. - val.y;
-        if (val.z < THRESHOLD.z) val.z = 1. - val.z;
-        float gray = dot(val, GRAY);
+        //vec2 uv = gl_FragCoord.xy / sketchSize.xy;
+        //vec3 val = vec3(texture2D(texture, uv));
+        if (textureColor.x < THRESHOLD.x) textureColor.x = 1. - textureColor.x;
+        if (textureColor.y < THRESHOLD.y) textureColor.y = 1. - textureColor.y;
+        if (textureColor.z < THRESHOLD.z) textureColor.z = 1. - textureColor.z;
+        float gray = dot(textureColor, GRAY);
         outColor = vec4(vec3(gray), 1.);
     }
 

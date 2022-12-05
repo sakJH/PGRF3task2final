@@ -12,20 +12,21 @@ import java.text.DecimalFormat;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL20.glGetUniformLocation;
 import static org.lwjgl.opengl.GL20.glUniform1f;
+import static org.lwjgl.opengl.GL20.glUniform1i;
 import static org.lwjgl.opengl.GL33.*;
 
 public class Renderer extends AbstractRenderer {
     private int shaderHdr;
-    private int loc_HdrMode, loc_PosX, loc_PosY, loc_Width, loc_Height, loc_Exposure, loc_Gamma, loc_Brightness, loc_InvertColor, loc_GreyFilter, loc_Solarise, loc_SolariseGrey;
+    private int loc_HdrMode, loc_PosX, loc_PosY, loc_Width, loc_Height, loc_Exposure, loc_Gamma, loc_Brightness, loc_InvertColor, loc_GreyFilter, loc_Solarise, loc_SolariseGrey, loc_GammaEnable;
     private boolean loadImg;
     OGLTexture2D texture, tempTexture, texture0, texture1, texture2, texture3, texture4, texture5;
     private double posX, posY;
-    int hdrMode = 0, brightness = 0, invertColor = 0, greyFilter = 0, solarise = 0, solariseGrey = 0, imgMode = 0;
+    int hdrMode = 0, brightness = 0, invertColor = 0, greyFilter = 0, solarise = 0, solariseGrey = 0, imgMode = 0, gammaEnable = 0;
     Mat4 projection;
     private OGLBuffers buffers;
 
     int width_ = 800, height_ = 600;
-    private float exposure = 1.f, gamma = 0.6f;
+    private float exposure = 1.f, gamma = 1.f;
 
     @Override
     public void display() {
@@ -70,6 +71,7 @@ public class Renderer extends AbstractRenderer {
         loc_GreyFilter = glGetUniformLocation(shaderHdr, "u_GreyFilter");
         loc_Solarise = glGetUniformLocation(shaderHdr, "u_Solarise");
         loc_SolariseGrey = glGetUniformLocation(shaderHdr, "u_SolariseGrey");
+        loc_GammaEnable = glGetUniformLocation(shaderHdr, "u_GammaEnable");
 
     }
 
@@ -98,6 +100,7 @@ public class Renderer extends AbstractRenderer {
         glUniform1i(loc_GreyFilter, greyFilter);
         glUniform1i(loc_Solarise, solarise);
         glUniform1i(loc_SolariseGrey, solariseGrey);
+        glUniform1i(loc_GammaEnable, gammaEnable);
 
         buffers.draw(GL_TRIANGLES, shaderHdr); //TODO naplnit buffer
 
@@ -145,7 +148,9 @@ public class Renderer extends AbstractRenderer {
 
                     case GLFW_KEY_2 -> { exposure += 0.5f; if (exposure > 3.f) exposure = 1.f; } //Změna expozice
 
-                    case GLFW_KEY_3 -> { gamma += 0.3f; if (gamma > 3.f) gamma = 0.3f; } //Změna Gamma
+                    case GLFW_KEY_3 -> {
+                        if (gammaEnable == 1) { gamma += 0.3f; if (gamma > 3.f) gamma = 0.3f; }
+                    } //Změna Gamma když je aktivována
 
                     case GLFW_KEY_4 -> { brightness++; if (brightness > 3) brightness = 0; } // Zobrazení Jasu
 
@@ -168,6 +173,12 @@ public class Renderer extends AbstractRenderer {
                             case 5 -> texture = texture5;
                             default -> texture = texture0;
                         };
+                    }
+
+                    case GLFW_KEY_G -> {
+                        gammaEnable++;
+                        if (gammaEnable > 1) gammaEnable = 0;
+                        System.out.println(gammaEnable);  //Povolení změny hodnoty Gamma
                     }
                 }
             }
@@ -235,6 +246,11 @@ public class Renderer extends AbstractRenderer {
             case 1 -> "Yes";
             default -> "default";
         };
+        String modeGammaEnable = switch (gammaEnable) {
+            case 0 -> "No";
+            case 1 -> "Yes";
+            default -> "default";
+        };
 
         DecimalFormat ft = new DecimalFormat("#.##");
 
@@ -248,6 +264,7 @@ public class Renderer extends AbstractRenderer {
         String textSolarise = "[R] Solarise: " + modeSolarise;
         String textSolariseGrey = "[T] Solarise Grey: " + modeSolariseGrey;
         String textSwitchImage = "[A] Switch Image";
+        String textEnableGamma = "[G] Enable Gamma: " + modeGammaEnable;
 
         textRenderer.setBackgroundColor(new Color(255,255,255));
         textRenderer.setColor(new Color(0, 0, 0));
@@ -262,6 +279,7 @@ public class Renderer extends AbstractRenderer {
         textRenderer.addStr2D(3, 125, textSolarise);
         textRenderer.addStr2D(3, 140, textSolariseGrey);
         textRenderer.addStr2D(3, 155, textSwitchImage);
+        textRenderer.addStr2D(3, 170, textEnableGamma);
 
     }
 
