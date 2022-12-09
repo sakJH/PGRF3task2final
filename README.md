@@ -1,9 +1,9 @@
 # PGRF3task2final
 PGRF3 Task 2 Zobrazení HDR obrazu
 
-#Ovládání 
+# Ovládání 
 viz: Text Renderer
 
-#Tone Mapping filtry
-##Reinhard
-##Reinhard Extended
+# Tone Mapping filtry
+## Reinhard
+## Reinhard Extended
