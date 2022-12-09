@@ -8,6 +8,8 @@ import transforms.Mat4PerspRH;
 import java.awt.*;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL20.glGetUniformLocation;
@@ -18,13 +20,11 @@ import static org.lwjgl.opengl.GL33.*;
 public class Renderer extends AbstractRenderer {
     private int shaderHdr;
     private int loc_HdrMode, loc_PosX, loc_PosY, loc_Width, loc_Height, loc_Exposure, loc_Gamma, loc_Brightness, loc_InvertColor, loc_GreyFilter, loc_Solarise, loc_SolariseGrey, loc_GammaEnable;
-    private boolean loadImg;
-    OGLTexture2D texture, tempTexture, texture0, texture1, texture2, texture3, texture4, texture5;
+    OGLTexture2D texture, texture0, texture1, texture2, texture3, texture4, texture5;
     private double posX, posY;
     int hdrMode = 0, brightness = 0, invertColor = 0, greyFilter = 0, solarise = 0, solariseGrey = 0, imgMode = 0, gammaEnable = 0;
     Mat4 projection;
     private OGLBuffers buffers;
-
     int width_ = 800, height_ = 600;
     private float exposure = 1.f, gamma = 1.f;
 
@@ -72,7 +72,6 @@ public class Renderer extends AbstractRenderer {
         loc_Solarise = glGetUniformLocation(shaderHdr, "u_Solarise");
         loc_SolariseGrey = glGetUniformLocation(shaderHdr, "u_SolariseGrey");
         loc_GammaEnable = glGetUniformLocation(shaderHdr, "u_GammaEnable");
-
     }
 
     private void renderMain(){
@@ -102,15 +101,7 @@ public class Renderer extends AbstractRenderer {
         glUniform1i(loc_SolariseGrey, solariseGrey);
         glUniform1i(loc_GammaEnable, gammaEnable);
 
-        buffers.draw(GL_TRIANGLES, shaderHdr); //TODO naplnit buffer
-
-        if (loadImg) {
-            tempTexture = FileLoader.loadIMG();
-            if (tempTexture != null) {
-                texture = tempTexture;
-            }
-            loadImg = false;
-        }
+        buffers.draw(GL_TRIANGLES, shaderHdr);
     }
 
     private final GLFWWindowSizeCallback wsCallback = new GLFWWindowSizeCallback() {
@@ -139,18 +130,14 @@ public class Renderer extends AbstractRenderer {
         @Override
         public void invoke(long window, int key, int scancode, int action, int mods) {
             if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
-                glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
+                glfwSetWindowShouldClose(window, true);
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
                 switch (key) {
                     case GLFW_KEY_1 -> { hdrMode++; if (hdrMode > 9) hdrMode = 0;} // Zobrazení HDR
 
-                    case GLFW_KEY_Q -> { loadImg = !loadImg; } // Načtení jiného obrázku
-
                     case GLFW_KEY_2 -> { exposure += 0.5f; if (exposure > 3.f) exposure = 1.f; } //Změna expozice
 
-                    case GLFW_KEY_3 -> {
-                        if (gammaEnable == 1) { gamma += 0.3f; if (gamma > 3.f) gamma = 0.3f; }
-                    } //Změna Gamma když je aktivována
+                    case GLFW_KEY_3 -> { if (gammaEnable == 1) { gamma += 0.3f; if (gamma > 3.f) gamma = 0.3f; } } //Změna Gamma když je aktivována
 
                     case GLFW_KEY_4 -> { brightness++; if (brightness > 3) brightness = 0; } // Zobrazení Jasu
 
@@ -163,7 +150,6 @@ public class Renderer extends AbstractRenderer {
                     case GLFW_KEY_T -> { solariseGrey++; if (solariseGrey > 1) solariseGrey = 0;} // Solarizace černobíleho filtru
 
                     case GLFW_KEY_A -> {imgMode++; if (imgMode > 5) imgMode = 0;
-
                         texture = switch (imgMode) {
                             case 0 -> texture = texture0;
                             case 1 -> texture = texture1;
@@ -175,11 +161,9 @@ public class Renderer extends AbstractRenderer {
                         };
                     }
 
-                    case GLFW_KEY_G -> {
-                        gammaEnable++;
-                        if (gammaEnable > 1) gammaEnable = 0;
-                        System.out.println(gammaEnable);  //Povolení změny hodnoty Gamma
-                    }
+                    case GLFW_KEY_G -> {gammaEnable++; if (gammaEnable > 1) gammaEnable = 0;} //Povolení změny hodnoty Gamma
+
+                    case GLFW_KEY_Y -> { show(); } // Generátor náhodných změn
                 }
             }
         }
@@ -247,8 +231,8 @@ public class Renderer extends AbstractRenderer {
             default -> "default";
         };
         String modeGammaEnable = switch (gammaEnable) {
-            case 0 -> "No";
-            case 1 -> "Yes";
+            case 0 -> "Disable";
+            case 1 -> "Enable";
             default -> "default";
         };
 
@@ -256,15 +240,14 @@ public class Renderer extends AbstractRenderer {
 
         String textHdr = "[1] HDR mode: " + modeHRD;
         String textExposure = "[2] Exposure value: " + exposure;
-        String textGama = "[3] Gamma correction value: " + ft.format(gamma);
+        String textGama = "Gamma - [G] " + modeGammaEnable + ", [3] Value: " + ft.format(gamma);
         String textBrightness = "[4] Brightness value: " + modeBrightness;
-        String textNewImage = "[Q] New Image";
         String textInvertColor = "[W] InvertColor: " + modeInvertColor;
         String textGreyFilter = "[E] Grey Filter: " + modeGreyFilter;
         String textSolarise = "[R] Solarise: " + modeSolarise;
         String textSolariseGrey = "[T] Solarise Grey: " + modeSolariseGrey;
         String textSwitchImage = "[A] Switch Image";
-        String textEnableGamma = "[G] Enable Gamma: " + modeGammaEnable;
+        String textShow = "[Y] Random change";
 
         textRenderer.setBackgroundColor(new Color(255,255,255));
         textRenderer.setColor(new Color(0, 0, 0));
@@ -273,14 +256,38 @@ public class Renderer extends AbstractRenderer {
         textRenderer.addStr2D(3, 35, textExposure);
         textRenderer.addStr2D(3, 50, textGama);
         textRenderer.addStr2D(3, 65, textBrightness);
-        textRenderer.addStr2D(3, 80, textNewImage);
-        textRenderer.addStr2D(3, 95, textInvertColor);
-        textRenderer.addStr2D(3, 110, textGreyFilter);
-        textRenderer.addStr2D(3, 125, textSolarise);
-        textRenderer.addStr2D(3, 140, textSolariseGrey);
-        textRenderer.addStr2D(3, 155, textSwitchImage);
-        textRenderer.addStr2D(3, 170, textEnableGamma);
+        textRenderer.addStr2D(3, 80, textInvertColor);
+        textRenderer.addStr2D(3, 95, textGreyFilter);
+        textRenderer.addStr2D(3, 110, textSolarise);
+        textRenderer.addStr2D(3, 125, textSolariseGrey);
+        textRenderer.addStr2D(3, 140, textSwitchImage);
+        textRenderer.addStr2D(3, 155, textShow);
+    }
 
+    private void show(){
+        Random random = new Random();
+        int change = random.nextInt(8);
+
+        switch (change){
+            case 0 -> hdrMode = range(0, 9);
+            case 1 -> exposure = (float)range(0,3);
+            case 2 -> gamma = (float)range(0,3);
+            case 3 -> brightness  = range(0,3);
+            case 4 -> invertColor = range(0,1);
+            case 5 -> greyFilter = range(0,1);
+            case 6 -> solarise = range(0,1);
+            case 7 -> solariseGrey = range(0,1);
+            default -> hdrMode = 0;
+        }
+        System.out.println("Change " + change);
+
+    }
+
+    public int range(int from, int to){
+        Random random = new Random();
+        int number = random.nextInt(from, to + 1);
+        System.out.println("Value " + number);
+        return number;
     }
 
 }

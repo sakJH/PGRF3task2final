@@ -183,7 +183,6 @@ void main() {
 
     //Filtry
 
-
     if(u_GammaEnable == 1)
     {
         float gammaCorrection = 1 / u_Gamma;
@@ -225,7 +224,6 @@ void main() {
         outColor = vec4(newR, newG, newB,1.);
     }
 
-
     if(u_InvertColor == 1)
     {
         float newR = 0.5 - appliedHdr.r;
@@ -245,9 +243,6 @@ void main() {
         vec3 THRESHOLD = vec3(1.,.92,.1);
         vec2 sketchSize = vec2(u_Width, u_Height);
 
-        vec2 uv = gl_FragCoord.xy / sketchSize.xy;
-
-        //vec3 val = vec3(texture2D(texture, uv));
         if (textureColor.x < THRESHOLD.x) textureColor.x = 1. - textureColor.x;
         if (textureColor.y < THRESHOLD.y) textureColor.y = 1. - textureColor.y;
         if (textureColor.z < THRESHOLD.z) textureColor.z = 1. - textureColor.z;
@@ -259,8 +254,6 @@ void main() {
         vec2 sketchSize = vec2(u_Width, u_Height);
         vec3 GRAY = vec3(0.299, 0.597, 0.114);
 
-        //vec2 uv = gl_FragCoord.xy / sketchSize.xy;
-        //vec3 val = vec3(texture2D(texture, uv));
         if (textureColor.x < THRESHOLD.x) textureColor.x = 1. - textureColor.x;
         if (textureColor.y < THRESHOLD.y) textureColor.y = 1. - textureColor.y;
         if (textureColor.z < THRESHOLD.z) textureColor.z = 1. - textureColor.z;
