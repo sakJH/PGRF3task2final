@@ -241,7 +241,6 @@ void main() {
 
     if(u_Solarise == 1){ // Zdroj: https://discourse.processing.org/t/solarization-shader/21731/2
         vec3 THRESHOLD = vec3(1.,.92,.1);
-        vec2 sketchSize = vec2(u_Width, u_Height);
 
         if (textureColor.x < THRESHOLD.x) textureColor.x = 1. - textureColor.x;
         if (textureColor.y < THRESHOLD.y) textureColor.y = 1. - textureColor.y;
@@ -251,7 +250,6 @@ void main() {
 
     if(u_SolariseGrey == 1){ // Zdroj: https://discourse.processing.org/t/solarization-shader/21731/2
         vec3 THRESHOLD = vec3(1.,.92,.1);
-        vec2 sketchSize = vec2(u_Width, u_Height);
         vec3 GRAY = vec3(0.299, 0.597, 0.114);
 
         if (textureColor.x < THRESHOLD.x) textureColor.x = 1. - textureColor.x;

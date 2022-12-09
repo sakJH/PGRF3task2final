@@ -92,7 +92,6 @@ vec3 brightness(vec3 vec){
     return vec3(newR, newG, newB);
 }
 
-// NEW ----------------------
 // Zdroj: https://www.shadertoy.com/view/lslGzl
 
 vec3 linearToneMapping(vec3 vec)
@@ -160,22 +159,22 @@ void main() {
         appliedHdr = vec4(resolut, 1.);
     }
 
-    if (u_HdrMode == 6) //
+    if (u_HdrMode == 6) // Linear Tone-Mapping
     {
         vec3 resolut = linearToneMapping(textureColor);
         appliedHdr = vec4(resolut, 1.);
     }
-    if (u_HdrMode == 7) //
+    if (u_HdrMode == 7) // White Preserving Luma-Based Reinhard Tone-Mapping
     {
         vec3 resolut = whitePreservingLumaBasedReinhardToneMapping(textureColor);
         appliedHdr = vec4(resolut, 1.);
     }
-    if (u_HdrMode == 8) //
+    if (u_HdrMode == 8) // RomBinDaHouse
     {
         vec3 resolut = RomBinDaHouseToneMapping(textureColor);
         appliedHdr = vec4(resolut, 1.);
     }
-    if (u_HdrMode == 9) //
+    if (u_HdrMode == 9) //Filmic Tone-Mapping
     {
         vec3 resolut = filmicToneMapping(textureColor);
         appliedHdr = vec4(resolut, 1.);
@@ -241,7 +240,6 @@ void main() {
 
     if(u_Solarise == 1){ // Zdroj: https://discourse.processing.org/t/solarization-shader/21731/2
         vec3 THRESHOLD = vec3(1.,.92,.1);
-        vec2 sketchSize = vec2(u_Width, u_Height);
 
         if (textureColor.x < THRESHOLD.x) textureColor.x = 1. - textureColor.x;
         if (textureColor.y < THRESHOLD.y) textureColor.y = 1. - textureColor.y;
@@ -251,7 +249,6 @@ void main() {
 
     if(u_SolariseGrey == 1){ // Zdroj: https://discourse.processing.org/t/solarization-shader/21731/2
         vec3 THRESHOLD = vec3(1.,.92,.1);
-        vec2 sketchSize = vec2(u_Width, u_Height);
         vec3 GRAY = vec3(0.299, 0.597, 0.114);
 
         if (textureColor.x < THRESHOLD.x) textureColor.x = 1. - textureColor.x;

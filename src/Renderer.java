@@ -34,6 +34,7 @@ public class Renderer extends AbstractRenderer {
         renderText();
     }
 
+    // GitHub: https://github.com/sakacj/PGRF3task2final
     @Override
     public void init() {
         OGLUtils.printOGLparameters();
@@ -41,9 +42,9 @@ public class Renderer extends AbstractRenderer {
         OGLUtils.printJAVAparameters();
         glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
 
-        textRenderer = new OGLTextRenderer(width_, height_);
-
         projection = new Mat4PerspRH(Math.PI / 4, 1, 0.1, 100.0);
+
+        textRenderer = new OGLTextRenderer(width_, height_);
 
         buffers = Quad.getQuad();
 
@@ -271,7 +272,7 @@ public class Renderer extends AbstractRenderer {
         switch (change){
             case 0 -> hdrMode = range(0, 9);
             case 1 -> exposure = (float)range(0,3);
-            case 2 -> gamma = (float)range(0,3);
+            case 2 -> {gammaEnable = 1; gamma = (float)range(0,3);}
             case 3 -> brightness  = range(0,3);
             case 4 -> invertColor = range(0,1);
             case 5 -> greyFilter = range(0,1);
@@ -279,14 +280,11 @@ public class Renderer extends AbstractRenderer {
             case 7 -> solariseGrey = range(0,1);
             default -> hdrMode = 0;
         }
-        System.out.println("Change " + change);
-
     }
 
     public int range(int from, int to){
         Random random = new Random();
         int number = random.nextInt(from, to + 1);
-        System.out.println("Value " + number);
         return number;
     }
 

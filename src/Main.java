@@ -18,8 +18,16 @@ public class Main {
 
     private AbstractRenderer renderer;
 
-    private static int width = 800;
-    private static int height= 600;
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
+    }
+
+    private int width = 800;
+    private int height = 600;
 
     public Main() {
 
@@ -29,11 +37,11 @@ public class Main {
         return renderer;
     }
 
-    public static int getWidth() {
+    public int getWidth() {
         return width;
     }
 
-    public static int getHeight() {
+    public int getHeight() {
         return height;
     }
 
