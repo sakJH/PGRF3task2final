@@ -1,6 +1,11 @@
 # PGRF3task2final
 PGRF3 Task 2 Zobrazení HDR obrazu
 Java s využitím OpelGL shaderů
+- Intelj Idea 2022.2
+- Java SDK 19
+- Language level 19
+- Libraries -> lwjgl ver. 3.3
+- složka "res" -> Mark as Resources
 
 ## Ovládání 
 viz: Text Renderer
